@@ -13,6 +13,13 @@
 #   username: hudson-user
 #   password: hudson-password
 
+# A server with form-based authentication.
+# - 
+#   url: http://localhost:8080/cc.xml
+#   login_url: http://localhost:8080/login
+#   username: hudson-user
+#   password: hudson-password
+
 
 # If you have a lot of jobs, and you only want to show the status of some of them, 
 # try listing them explicitly

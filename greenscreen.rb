@@ -4,6 +4,9 @@ require 'erb'
 require 'rexml/document'
 require 'hpricot'
 require 'open-uri'
+require 'mechanize'
+
+agent = Mechanize.new
 
 get '/' do
   servers = YAML.load_file 'config.yml'
@@ -12,7 +15,23 @@ get '/' do
   @projects = []
 
   servers.each do |server|
-    xml = REXML::Document.new(open(server["url"], :http_basic_authentication=>[server["username"], server["password"]]))
+    begin
+      agent.auth(server["username"], server["password"])
+      xml = REXML::Document.new(agent.get_file server["url"])
+    rescue Mechanize::ResponseCodeError => e
+      raise 'Need login_url for server' unless server["login_url"]
+      if e.response_code.to_i == 403
+        agent.get(server["login_url"]) do |page|
+          page.form_with(:name => 'login') do |form|
+            form['j_username'] = server["username"]
+	    form['j_password'] = server["password"]
+          end.submit
+        end
+        retry
+      end
+      raise
+    end
+
     projects = xml.elements["//Projects"]
     
     projects.each do |project|
